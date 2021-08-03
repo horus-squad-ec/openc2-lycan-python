@@ -400,10 +400,21 @@ class ComponentProperty(Property):
 
 
 class TargetProperty(ComponentProperty):
-    def __init__(self, allow_custom=False, *args, **kwargs):
+    def __init__(self, allow_custom=False, restrict_type=None, *args, **kwargs):
         super(TargetProperty, self).__init__(
             allow_custom=allow_custom, component_type="targets", *args, **kwargs
         )
+        if restrict_type is None:
+            restrict_type = []
+        elif isinstance(restrict_type, str):
+            restrict_type = [restrict_type]
+        self.allowed_types = set(restrict_type)
+
+    def clean(self, value):
+        if len(self.allowed_types) > 0 and value._type not in self.allowed_types:
+            msg = "type {} not allowed. Expected one of {}".format(value._type, self.allowed_types)
+            raise ValueError(msg)
+        return value
 
 
 class ActuatorProperty(ComponentProperty):
